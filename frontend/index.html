@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RideX – Smart Ride Sharing</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Mapbox CSS -->
+  <link
+    href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <span class="logo">🚕</span>
+        <span class="brand-text">RideX</span>
+      </div>
+      <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="rider">Rider</button>
+        <button class="tab-btn" data-tab="driver">Driver</button>
+        <button class="tab-btn" data-tab="admin">Admin</button>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <!-- Rider Section -->
+      <section id="rider" class="tab-content active">
+        <div class="card">
+          <h2>Request a Ride</h2>
+          <p class="subtitle">Enter your details and locations to get an estimated fare & driver.</p>
+          <form id="rider-form" class="form-grid">
+            <div class="form-group">
+              <label>Rider Name</label>
+              <input type="text" name="rider_name" required />
+            </div>
+            <div class="form-group">
+              <label>Rider Phone</label>
+              <input type="text" name="rider_phone" required />
+            </div>
+
+            <div class="form-divider">Pickup</div>
+            <div class="form-group">
+              <label>Latitude</label>
+              <input
+                id="pickup-lat"
+                type="number"
+                step="0.000001"
+                name="pickup_lat"
+                value="12.9716"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Longitude</label>
+              <input
+                id="pickup-lon"
+                type="number"
+                step="0.000001"
+                name="pickup_lon"
+                value="77.5946"
+                required
+              />
+            </div>
+            <div class="form-group-full">
+              <label>Pickup Address (optional)</label>
+              <input
+                id="pickup-address"
+                type="text"
+                name="pickup_address"
+                value="MG Road, Bengaluru"
+              />
+              <button
+                type="button"
+                id="pickup-geocode-btn"
+                class="btn secondary small"
+                style="margin-top: 6px;"
+              >
+                📍 Use address to fill lat/lon
+              </button>
+            </div>
+
+            <div class="form-divider">Dropoff</div>
+            <div class="form-group">
+              <label>Latitude</label>
+              <input
+                id="drop-lat"
+                type="number"
+                step="0.000001"
+                name="drop_lat"
+                value="12.9352"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Longitude</label>
+              <input
+                id="drop-lon"
+                type="number"
+                step="0.000001"
+                name="drop_lon"
+                value="77.6245"
+                required
+              />
+            </div>
+            <div class="form-group-full">
+              <label>Dropoff Address (optional)</label>
+              <input
+                id="drop-address"
+                type="text"
+                name="drop_address"
+                value="BTM Layout, Bengaluru"
+              />
+              <button
+                type="button"
+                id="drop-geocode-btn"
+                class="btn secondary small"
+                style="margin-top: 6px;"
+              >
+                📍 Use address to fill lat/lon
+              </button>
+            </div>
+
+            <div class="form-group-full">
+              <label>Search Radius (km)</label>
+              <input type="number" name="max_distance_km" value="5" min="1" max="20" />
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn primary">Find Ride</button>
+              <span id="rider-status" class="status-text"></span>
+            </div>
+          </form>
+
+          <div id="rider-result" class="result-card hidden"></div>
+        </div>
+
+        <div class="card">
+          <h3>Live Map</h3>
+          <p class="subtitle">Pickup, drop and assigned driver are visualized on the map.</p>
+          <div id="rider-map" class="map-container"></div>
+        </div>
+      </section>
+
+      <!-- Driver Section -->
+      <section id="driver" class="tab-content">
+        <div class="two-column">
+          <div class="card">
+            <h2>Register / Update Driver</h2>
+            <form id="driver-register-form" class="form-grid">
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="name" required />
+              </div>
+              <div class="form-group">
+                <label>Phone</label>
+                <input type="text" name="phone" required />
+              </div>
+              <div class="form-group-full">
+                <label>Email</label>
+                <input type="email" name="email" />
+              </div>
+              <div class="form-group">
+                <label>Vehicle Type</label>
+                <select name="vehicle_type">
+                  <option value="car">Car</option>
+                  <option value="bike">Bike</option>
+                  <option value="auto">Auto</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Vehicle Model</label>
+                <input type="text" name="vehicle_model" value="Hyundai i20" />
+              </div>
+              <div class="form-group-full">
+                <label>Plate Number</label>
+                <input type="text" name="plate_number" value="KA-01-AB-1234" />
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Save Driver</button>
+                <span id="driver-register-status" class="status-text"></span>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Update Driver Location</h2>
+            <form id="driver-location-form" class="form-grid">
+              <div class="form-group-full">
+                <label>Driver Phone</label>
+                <input type="text" name="phone" required />
+              </div>
+
+              <div class="form-group-full">
+                <label>Driver Address (optional)</label>
+                <input
+                  id="driver-address"
+                  type="text"
+                  placeholder="Ex: Jayanagar, Bengaluru"
+                />
+                <button
+                  type="button"
+                  id="driver-geocode-btn"
+                  class="btn secondary small"
+                  style="margin-top: 6px;"
+                >
+                  📍 Use address to fill lat/lon
+                </button>
+              </div>
+
+              <div class="form-group">
+                <label>Latitude</label>
+                <input
+                  id="driver-lat"
+                  type="number"
+                  step="0.000001"
+                  name="lat"
+                  value="12.9716"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Longitude</label>
+                <input
+                  id="driver-lon"
+                  type="number"
+                  step="0.000001"
+                  name="lon"
+                  value="77.5946"
+                  required
+                />
+              </div>
+
+              <div class="form-group-full">
+                <label>Status</label>
+                <select name="status">
+                  <option value="available">Available</option>
+                  <option value="on_ride">On Ride</option>
+                  <option value="offline">Offline</option>
+                </select>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn secondary">Update Location</button>
+                <span id="driver-location-status" class="status-text"></span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Admin Section -->
+      <section id="admin" class="tab-content">
+        <div class="card">
+          <h2>Admin Dashboard</h2>
+          <button id="refresh-admin" class="btn primary small">Refresh Data</button>
+          <div id="admin-summary" class="summary-grid"></div>
+        </div>
+
+        <div class="card">
+          <h3>Driver Locations</h3>
+          <p class="subtitle">All driver locations with status are shown on the map.</p>
+          <div id="admin-map" class="map-container"></div>
+        </div>
+
+        <div class="two-column">
+          <div class="card">
+            <h3>Ongoing Rides</h3>
+            <div id="ongoing-rides" class="list"></div>
+          </div>
+          <div class="card">
+            <h3>Recent Rides</h3>
+            <div id="recent-rides" class="list"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Top Drivers</h3>
+          <div id="top-drivers" class="list"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>Made with ❤️ for MongoDB + REST + Mapbox</span>
+    </footer>
+  </div>
+
+  <!-- Mapbox JS -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

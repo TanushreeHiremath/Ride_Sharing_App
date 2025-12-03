@@ -1,5 +1,5 @@
 // Backend base URL
-const API_BASE = "http://127.0.0.1:5000";
+const API_BASE = "https://ride-sharing-app-zm7p.onrender.com";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -602,3 +602,4 @@ async function completeRide(rideId, refreshFn) {
     alert("Network error: " + err.message);
   }
 }
+
